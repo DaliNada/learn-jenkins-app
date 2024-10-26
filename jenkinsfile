@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+    environment {
+        NETLIFY_SITE_ID = '2a8e62e6-8edc-4688-b35a-754d4f994512'
+    }
+
     stages {
         stage('Build') {
             agent {
@@ -9,18 +13,20 @@ pipeline {
                     reuseNode true
                 }
             }
+
             steps {
                 sh '''
                     ls -la
                     node --version
                     npm --version
+                    npm run build
                     npm ci
-                    npm run build 
                     ls -la
                 '''
             }
         }
-                stage('Tests') {
+
+        stage('Tests') {
             parallel {
                 stage('Unit tests') {
                     agent {
@@ -78,10 +84,12 @@ pipeline {
                     reuseNode true
                 }
             }
+
             steps {
                 sh '''
-                    npm install netlify-cli -g
-                    netlify --version
+                    npm install netlify-cli
+                    ./node_modules/.bin/netlify --version
+                    echo "Deploying to production. Site ID: $NETLIFY_SITE_ID"
                 '''
             }
         }
